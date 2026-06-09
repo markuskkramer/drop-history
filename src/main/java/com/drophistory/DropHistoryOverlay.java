@@ -3,8 +3,8 @@ package com.drophistory;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Point;
+import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -19,10 +19,8 @@ import java.util.List;
 
 /**
  * Renders a KC history tooltip when hovering an item in the collection log.
- *
- * Widget IDs for the collection log item grid:
- *   Group 621 (COLLECTION_LOG), child 35 = the item list container.
- *   Each dynamic child of that container is an item slot.
+ * Uses InterfaceID.Collection.ITEMS_CONTENTS to locate the item grid widget.
+ * Each dynamic child of that container is an item slot.
  */
 @Slf4j
 public class DropHistoryOverlay extends Overlay
@@ -49,8 +47,7 @@ public class DropHistoryOverlay extends Overlay
             return null;
         }
 
-        @SuppressWarnings("deprecation")
-        Widget container = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_ITEMS);
+        Widget container = client.getWidget(InterfaceID.Collection.ITEMS_CONTENTS);
         if (container == null || container.isHidden())
         {
             return null;
