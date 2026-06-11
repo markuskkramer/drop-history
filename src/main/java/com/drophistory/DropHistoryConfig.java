@@ -28,4 +28,14 @@ public interface DropHistoryConfig extends Config
     {
         return false;
     }
+
+    @ConfigItem(
+        keyName = "womEstimates",
+        name = "Estimate KCs via Wise Old Man",
+        description = "For imported drops with an unknown KC, look up your historical boss KC on wiseoldman.net and show an estimate. Sends your display name to the Wise Old Man API."
+    )
+    default boolean womEstimates()
+    {
+        return true;
+    }
 }

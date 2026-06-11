@@ -73,6 +73,32 @@ public class DropHistoryManager
         return loadData().getOrDefault(normalize(itemName), new ArrayList<>());
     }
 
+    /**
+     * Fills in an estimated kill count on a record that previously had an
+     * unknown KC, identified by item and timestamp. Called from an HTTP
+     * callback thread, hence synchronized.
+     */
+    public synchronized void applyEstimate(String itemName, long timestamp, int killCount, String source)
+    {
+        Map<String, List<DropRecord>> data = loadData();
+        List<DropRecord> records = data.get(normalize(itemName));
+        if (records == null)
+        {
+            return;
+        }
+        for (DropRecord record : records)
+        {
+            if (record.getTimestamp() == timestamp && record.getKillCount() == -1)
+            {
+                record.setKillCount(killCount);
+                record.setSource(source);
+                record.setEstimated(true);
+                saveData(data);
+                return;
+            }
+        }
+    }
+
     private String normalize(String name)
     {
         return name == null ? "" : name.toLowerCase().trim();

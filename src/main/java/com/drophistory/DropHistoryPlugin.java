@@ -30,6 +30,7 @@ public class DropHistoryPlugin extends Plugin
     @Inject private DropHistoryOverlay overlay;
     @Inject private KillCountTracker kcTracker;
     @Inject private LootTrackerImporter lootTrackerImporter;
+    @Inject private ScreenshotImporter screenshotImporter;
     @Inject private OverlayManager overlayManager;
     @Inject private ItemManager itemManager;
     @Inject private EventBus eventBus;
@@ -40,7 +41,10 @@ public class DropHistoryPlugin extends Plugin
         manager.invalidateCache();
         overlayManager.add(overlay);
         eventBus.register(kcTracker);
+        // Order matters: the loot tracker import provides exact KCs, so it
+        // runs first and the screenshot import dedupes against its records.
         lootTrackerImporter.runIfNeeded();
+        screenshotImporter.runIfNeeded();
         log.debug("Drop History started");
     }
 

@@ -31,6 +31,7 @@ public class DropHistoryOverlay extends Overlay
     @Inject private DropHistoryConfig config;
     @Inject private DropHistoryManager manager;
     @Inject private TooltipManager tooltipManager;
+    @Inject private WomKcEstimator estimator;
 
     @Inject
     public DropHistoryOverlay()
@@ -101,16 +102,38 @@ public class DropHistoryOverlay extends Overlay
             }
             else
             {
+                String pageTitle = collectionLogPageTitle();
+                String playerName = client.getLocalPlayer() != null
+                    ? client.getLocalPlayer().getName()
+                    : null;
+
                 for (DropRecord record : drops)
                 {
+                    if (record.getKillCount() == -1)
+                    {
+                        // Kick off an async WOM estimate; no-op after the first call.
+                        estimator.requestEstimate(itemName, record, pageTitle, playerName);
+                    }
+
                     sb.append("<br>");
                     if (record.getKillCount() == -1)
                     {
                         sb.append("<col=aaaaaa>KC unknown</col>");
                     }
+                    else if (record.isEstimated())
+                    {
+                        sb.append("<col=ffffff>KC ~").append(String.format("%,d", record.getKillCount())).append("</col>")
+                          .append(" <col=aaaaaa>(est.)</col>");
+                    }
                     else
                     {
                         sb.append("<col=ffffff>KC ").append(String.format("%,d", record.getKillCount())).append("</col>");
+                    }
+
+                    String source = record.getSource();
+                    if (source != null && !source.isEmpty() && !"Unknown".equalsIgnoreCase(source))
+                    {
+                        sb.append(" <col=ff9040>— ").append(source).append("</col>");
                     }
 
                     if (config.showTimestamp())
@@ -127,5 +150,25 @@ public class DropHistoryOverlay extends Overlay
         }
 
         return null;
+    }
+
+    /**
+     * The title of the currently open collection log page (e.g. "Vorkath"),
+     * which identifies the boss for KC estimation. Null when unavailable.
+     */
+    private String collectionLogPageTitle()
+    {
+        Widget header = client.getWidget(InterfaceID.Collection.HEADER_TEXT);
+        if (header == null)
+        {
+            return null;
+        }
+        Widget[] children = header.getDynamicChildren();
+        if (children == null || children.length == 0 || children[0].getText() == null)
+        {
+            return null;
+        }
+        String title = children[0].getText().replaceAll("<[^>]+>", "").trim();
+        return title.isEmpty() ? null : title;
     }
 }

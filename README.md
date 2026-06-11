@@ -11,18 +11,29 @@ A RuneLite plugin that tracks what kill count you received each collection log i
 
 ## Historical import — what it can and can't recover
 
-The historical import reads the RuneLite **Loot Tracker** plugin's locally saved
-data from `~/.runelite/loots/`. That folder only contains data if the Loot
-Tracker has been saving loot to disk on your machine.
+On startup, Drop History backfills your history from every local source it
+can find, preferring the most accurate data available for each drop:
 
-- If you have local loot tracker data, your past drops (and their KCs, where
-  the loot tracker recorded them) are imported automatically.
-- If you don't, there is nothing on disk to import — Drop History will simply
-  start recording from your next kill onward. The plugin re-checks for loot
-  tracker data on every startup until it finds some.
-- Drops the loot tracker saved without a kill count appear as "KC unknown".
-- Drops received before you ever used the loot tracker cannot be recovered —
-  that information was never stored anywhere.
+1. **Loot tracker logs** (`~/.runelite/loots/`) — exact KCs, written by the
+   Loot Logger plugin if you ever ran it.
+2. **Boss kill screenshots** (`~/.runelite/screenshots/<name>/Boss Kills/`) —
+   exact KCs parsed from filenames like `Vorkath(847).png`, matched to
+   collection log screenshots taken at the same moment.
+3. **Collection log screenshots**
+   (`~/.runelite/screenshots/<name>/Collection Log/`) — RuneLite saves these
+   **by default**, giving the item and the date it was obtained. When only
+   the date is known, the plugin can estimate your KC at that date from your
+   [Wise Old Man](https://wiseoldman.net) boss KC history; estimates are
+   shown as `KC ~847 (est.)`.
+4. Anything else appears as "KC unknown".
+
+Imports retry on every startup until data is found, so installing the plugin
+before the data exists is fine. Drops received before any of these sources
+recorded them cannot be recovered — that information was never stored.
+
+Wise Old Man estimation only works if your account has snapshot history
+there (anyone who has ever been looked up on wiseoldman.net). It sends your
+display name to the Wise Old Man API and can be disabled in settings.
 
 ## Example
 
@@ -38,3 +49,4 @@ Hovering "Twisted bow" in your collection log might show:
 |---|---|---|
 | Show KC tooltip | On | Show drop history when hovering collection log items |
 | Show date in tooltip | Off | Include the date alongside the KC |
+| Estimate KCs via Wise Old Man | On | Estimate unknown KCs from your Wise Old Man history (sends your display name to the WOM API) |
