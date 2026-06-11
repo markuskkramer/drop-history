@@ -27,6 +27,10 @@ import java.util.Map;
  *
  * Builds the full dataset in memory first, then flushes in a single file write
  * to avoid race conditions with invalidateCache() during login.
+ *
+ * The import is only marked complete once at least one record has been
+ * imported; if no local loot tracker data exists yet, it retries on every
+ * startup so data added later is still picked up.
  */
 @Slf4j
 @Singleton
@@ -47,23 +51,20 @@ public class LootTrackerImporter
         }
 
         File lootsDir = new File(RuneLite.RUNELITE_DIR, "loots");
-        if (!lootsDir.exists())
+        File[] profiles = lootsDir.exists()
+            ? lootsDir.listFiles(f -> f.isDirectory() && f.getName().matches("\\d+"))
+            : null;
+        if (profiles == null || profiles.length == 0)
         {
-            log.debug("No loots directory found at {}", lootsDir);
-            markDone();
+            // Don't mark done — the loot tracker may write data later,
+            // so check again on the next startup.
+            log.info("No local loot tracker data found at {} — historical import skipped, will retry next startup", lootsDir);
             return;
         }
 
         // Build entire import in memory — no file I/O until the very end.
         Map<String, List<DropRecord>> incoming = new HashMap<>();
         int totalRecords = 0;
-
-        File[] profiles = lootsDir.listFiles(f -> f.isDirectory() && f.getName().matches("\\d+"));
-        if (profiles == null)
-        {
-            markDone();
-            return;
-        }
 
         for (File profile : profiles)
         {
@@ -80,6 +81,12 @@ public class LootTrackerImporter
                     totalRecords += parseLogFile(logFile, incoming);
                 }
             }
+        }
+
+        if (totalRecords == 0)
+        {
+            log.info("Loot tracker logs contained no importable drops — will retry next startup");
+            return;
         }
 
         // Single write for all imported data
@@ -119,9 +126,20 @@ public class LootTrackerImporter
     {
         JsonObject obj = new JsonParser().parse(line).getAsJsonObject();
 
-        int killCount = obj.get("killCount").getAsInt();
-        String source = obj.get("name").getAsString();
-        long timestamp = parseDate(obj.get("date").getAsString());
+        JsonElement sourceEl = obj.get("name");
+        if (sourceEl == null || sourceEl.isJsonNull()) return 0;
+        String source = sourceEl.getAsString();
+
+        // Loot tracker records only carry a kill count when the KC chat
+        // message was seen; treat missing KC as unknown (-1) rather than
+        // discarding the drop entirely.
+        JsonElement kcEl = obj.get("killCount");
+        int killCount = (kcEl != null && !kcEl.isJsonNull()) ? kcEl.getAsInt() : -1;
+
+        JsonElement dateEl = obj.get("date");
+        long timestamp = (dateEl != null && !dateEl.isJsonNull())
+            ? parseDate(dateEl.getAsString())
+            : System.currentTimeMillis();
 
         JsonArray drops = obj.getAsJsonArray("drops");
         if (drops == null) return 0;
@@ -129,7 +147,9 @@ public class LootTrackerImporter
         int count = 0;
         for (JsonElement el : drops)
         {
-            String itemName = el.getAsJsonObject().get("name").getAsString();
+            JsonElement itemEl = el.getAsJsonObject().get("name");
+            if (itemEl == null || itemEl.isJsonNull()) continue;
+            String itemName = itemEl.getAsString();
             if (itemName == null || itemName.isEmpty()) continue;
 
             String key = itemName.toLowerCase().trim();
