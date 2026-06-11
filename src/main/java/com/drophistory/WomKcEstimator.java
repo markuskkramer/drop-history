@@ -105,6 +105,8 @@ public class WomKcEstimator
             return;
         }
 
+        log.info("Requesting WOM KC estimate for {} ({}) as {}", itemName, metric, playerName);
+
         long dropTime = record.getTimestamp();
         HttpUrl url = HttpUrl.parse(WOM_API_BASE).newBuilder()
             .addPathSegment("players")
@@ -126,7 +128,7 @@ public class WomKcEstimator
             @Override
             public void onFailure(Call call, IOException e)
             {
-                log.debug("WOM request failed for {}: {}", metric, e.getMessage());
+                log.info("WOM request failed for {}: {}", metric, e.getMessage());
             }
 
             @Override
@@ -136,7 +138,7 @@ public class WomKcEstimator
                 {
                     if (!response.isSuccessful() || body == null)
                     {
-                        log.debug("WOM returned {} for {} ({})", response.code(), playerName, metric);
+                        log.info("WOM returned {} for {} ({})", response.code(), playerName, metric);
                         return;
                     }
                     List<TimelinePoint> timeline = gson.fromJson(body.charStream(), TIMELINE_TYPE);
@@ -144,12 +146,16 @@ public class WomKcEstimator
                     if (estimate > 0)
                     {
                         manager.applyEstimate(itemName, dropTime, estimate, bossName);
-                        log.debug("Estimated KC {} for {} via WOM ({})", estimate, itemName, metric);
+                        log.info("Estimated KC {} for {} via WOM ({})", estimate, itemName, metric);
+                    }
+                    else
+                    {
+                        log.info("No usable WOM snapshots for {} ({}) around the drop date", playerName, metric);
                     }
                 }
                 catch (Exception e)
                 {
-                    log.debug("Failed to parse WOM response for {}", metric, e);
+                    log.info("Failed to parse WOM response for {}", metric, e);
                 }
             }
         });
