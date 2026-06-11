@@ -152,7 +152,9 @@ public class DropHistoryOverlay extends Overlay
                         sb.append(" <col=ff9040>— ").append(source).append("</col>");
                     }
 
-                    if (config.showTimestamp())
+                    // For unknown KCs the date is the only information we
+                    // have, so always show it there.
+                    if ((config.showTimestamp() || record.getKillCount() == -1) && record.getTimestamp() > 0)
                     {
                         sb.append(" <col=888888>(")
                           .append(DATE_FMT.format(new Date(record.getTimestamp())))
