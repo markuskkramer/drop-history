@@ -49,4 +49,5 @@ Hovering "Twisted bow" in your collection log might show:
 |---|---|---|
 | Show KC tooltip | On | Show drop history when hovering collection log items |
 | Show date in tooltip | Off | Include the date alongside the KC |
+| Max drops listed per item | 25 | Items with more drops than this show a summary (total + first KC) instead of every drop |
 | Estimate KCs via Wise Old Man | On | Estimate unknown KCs from your Wise Old Man history (sends your display name to the WOM API) |

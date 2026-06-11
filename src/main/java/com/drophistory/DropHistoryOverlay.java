@@ -100,6 +100,22 @@ public class DropHistoryOverlay extends Overlay
             {
                 sb.append("<br><col=aaaaaa>No drops recorded yet</col>");
             }
+            else if (drops.size() > config.maxDropsShown())
+            {
+                // Bulk items (Demon tears, Tokkul, ...) can have thousands
+                // of recorded drops; show a summary instead of every line.
+                sb.append("<br><col=aaaaaa>").append(String.format("%,d", drops.size()))
+                  .append(" drops recorded</col>");
+                int firstKc = drops.stream()
+                    .mapToInt(DropRecord::getKillCount)
+                    .filter(kc -> kc > 0)
+                    .min()
+                    .orElse(-1);
+                if (firstKc > 0)
+                {
+                    sb.append("<br><col=ffffff>First at KC ").append(String.format("%,d", firstKc)).append("</col>");
+                }
+            }
             else
             {
                 String pageTitle = collectionLogPageTitle();

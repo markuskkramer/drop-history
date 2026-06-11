@@ -3,6 +3,7 @@ package com.drophistory;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.Range;
 
 @ConfigGroup(DropHistoryConfig.GROUP)
 public interface DropHistoryConfig extends Config
@@ -27,6 +28,17 @@ public interface DropHistoryConfig extends Config
     default boolean showTimestamp()
     {
         return false;
+    }
+
+    @Range(min = 1)
+    @ConfigItem(
+        keyName = "maxDropsShown",
+        name = "Max drops listed per item",
+        description = "Items with more recorded drops than this show a short summary instead of every drop. Keeps the tooltip usable for items that drop in bulk, like Demon tears."
+    )
+    default int maxDropsShown()
+    {
+        return 25;
     }
 
     @ConfigItem(
