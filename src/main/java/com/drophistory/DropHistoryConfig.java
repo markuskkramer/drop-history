@@ -44,10 +44,11 @@ public interface DropHistoryConfig extends Config
     @ConfigItem(
         keyName = "womEstimates",
         name = "Estimate KCs via Wise Old Man",
-        description = "For imported drops with an unknown KC, look up your historical boss KC on wiseoldman.net and show an estimate. Sends your display name to the Wise Old Man API."
+        description = "For imported drops with an unknown KC, look up your historical boss KC on wiseoldman.net and show an estimate. Sends your display name to the Wise Old Man API.",
+        warning = "This plugin submits your IP address to a 3rd-party server not controlled or verified by Runelite developers"
     )
     default boolean womEstimates()
     {
-        return true;
+        return false;
     }
 }

@@ -31,9 +31,10 @@ Imports retry on every startup until data is found, so installing the plugin
 before the data exists is fine. Drops received before any of these sources
 recorded them cannot be recovered — that information was never stored.
 
-Wise Old Man estimation only works if your account has snapshot history
-there (anyone who has ever been looked up on wiseoldman.net). It sends your
-display name to the Wise Old Man API and can be disabled in settings.
+Wise Old Man estimation is **off by default** and only works if your account
+has snapshot history there (anyone who has ever been looked up on
+wiseoldman.net). Enabling it shows a warning because it sends your display
+name and IP address to the third-party Wise Old Man API.
 
 ## Example
 
@@ -50,4 +51,4 @@ Hovering "Twisted bow" in your collection log might show:
 | Show KC tooltip | On | Show drop history when hovering collection log items |
 | Show date in tooltip | Off | Include the date alongside the KC |
 | Max drops listed per item | 25 | Items with more drops than this show a summary (total + first KC) instead of every drop |
-| Estimate KCs via Wise Old Man | On | Estimate unknown KCs from your Wise Old Man history (sends your display name to the WOM API) |
+| Estimate KCs via Wise Old Man | Off | Estimate unknown KCs from your Wise Old Man history (sends your display name and IP to the WOM API; shows a warning when enabled) |
