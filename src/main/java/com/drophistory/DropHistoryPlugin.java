@@ -53,6 +53,7 @@ public class DropHistoryPlugin extends Plugin
     {
         overlayManager.remove(overlay);
         eventBus.unregister(kcTracker);
+        manager.flushNow();
         log.debug("Drop History stopped");
     }
 
